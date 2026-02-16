@@ -110,6 +110,7 @@ return function ouibounce(el, custom_config) {
 
     // User scrolled up quickly past threshold while near the top of the page
     if (scrollDelta > scrollThreshold && currentScrollY < touchSensitivity) {
+      if (_delayTimer) { clearTimeout(_delayTimer); }
       _delayTimer = setTimeout(fire, delay);
     }
 
@@ -119,6 +120,7 @@ return function ouibounce(el, custom_config) {
   // Modern: detect when user switches away from the page
   function handleVisibilityChange() {
     if (document.visibilityState === 'hidden') {
+      if (_delayTimer) { clearTimeout(_delayTimer); }
       _delayTimer = setTimeout(fire, delay);
     }
   }
