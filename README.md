@@ -1,15 +1,39 @@
 # Ouibounce
 > Originally created by [Carl Sednaoui](http://carlsednaoui.com/about?utm_source=github&utm_medium=ouibounce-description&utm_campaign=carlsednaoui) from [MailCharts](http://www.mailcharts.com/?utm_source=github&utm_medium=ouibounce-description&utm_campaign=carlsednaoui). Maintained and improved by [generous contributors](https://github.com/carlsednaoui/ouibounce/graphs/contributors). 
 
-
-
-[![tests](http://img.shields.io/travis/carlsednaoui/ouibounce.svg?style=flat)](https://travis-ci.org/carlsednaoui/ouibounce) [![twitter](http://img.shields.io/badge/twitter-@carlsednaoui-blue.svg?style=flat)](http://twitter.com/carlsednaoui)
-
 Ouibounce: A small library enabling you to display a modal before a user leaves your website.
 
 ![](http://cl.ly/image/2C2p0l3W1M00/ouibounce.gif)
 
-> **Quick note**: [Let me know](https://twitter.com/carlsednaoui) if you end up using Ouibounce. I'd love to hear about your project / see Ouibounce in the wild :)
+### Is exit-intent still relevant in 2026?
+
+**Yes.** Exit-intent popups remain a proven technique for increasing conversion rates, with studies consistently showing a 7–15% lift when used thoughtfully. The core concept — detecting when a user is about to leave and presenting a relevant offer — is as valid today as ever.
+
+That said, the landscape has changed significantly since this library was first created:
+
+- **Mobile traffic dominates.** Traditional mouse-based exit detection doesn't work on touch devices. Ouibounce now includes mobile support via scroll-up detection and the [Page Visibility API](https://developer.mozilla.org/en-US/docs/Web/API/Page_Visibility_API).
+- **Modern browsers** have restricted some exit-detection methods (e.g., custom `beforeunload` messages are largely ignored by browsers now).
+- **User expectations have risen.** Spammy or intrusive popups hurt brand perception and SEO. Use exit-intent to _provide genuine value_.
+
+#### Modern alternatives and complementary approaches
+
+If Ouibounce doesn't fit your needs, consider these alternatives:
+
+| Approach | Description |
+|----------|-------------|
+| **Page Visibility API** | Detect when users switch tabs or minimize the browser. Ouibounce now supports this natively via the `detectVisibility` option. |
+| **Scroll-based detection** | On mobile, detecting rapid scroll-up toward the top of the page signals exit intent. Ouibounce now supports this natively. |
+| **Idle/inactivity timers** | Trigger after a period of no interaction — useful for both desktop and mobile. |
+| **AI/ML prediction** | Combine multiple behavioral signals (time on page, scroll depth, mouse patterns) to predict exit intent more accurately. Services like [Wisepops](https://wisepops.com/) and [OptiMonk](https://www.optimonk.com/) offer this. |
+| **Intersection Observer** | Detect when key elements leave the viewport as a proxy for disengagement. |
+
+#### Why Ouibounce is still a good choice
+
+- **Zero dependencies** — ~2KB minified, no framework lock-in
+- **Now works on mobile** — scroll-up detection and visibility change support
+- **Simple API** — easy to integrate with any stack
+- **Privacy-friendly** — no tracking, no external services, cookie-based suppression
+- **Battle-tested** — used in production across thousands of sites
 
 ### The philosophy behind this project
 
@@ -87,6 +111,9 @@ Ouibounce offers a few options, such as:
 - [Cookie domain](#cookie-domain)
 - [Cookie name](#cookie-name)
 - [Sitewide cookie](#sitewide-cookie)
+- [Touch sensitivity](#touch-sensitivity) _(new)_
+- [Scroll threshold](#scroll-threshold) _(new)_
+- [Detect visibility](#detect-visibility) _(new)_
 - [Chaining options](#chaining-options)
 
 ##### Sensitivity
@@ -172,6 +199,31 @@ _Example:_
 ouibounce(document.getElementById('ouibounce-modal'), { sitewide: true });
 ```
 
+##### Touch sensitivity
+On touch/mobile devices, Ouibounce detects exit intent when a user scrolls up rapidly toward the top of the page. `touchSensitivity` controls how close to the top of the page (in pixels) the user must be for a scroll-up to trigger. _Defaults to 300._
+
+_Example:_    
+```js
+ouibounce(document.getElementById('ouibounce-modal'), { touchSensitivity: 150 });
+```
+
+##### Scroll threshold
+On touch/mobile devices, `scrollThreshold` sets the minimum scroll-up distance (in pixels) required to trigger exit intent. Higher values require more aggressive scrolling. _Defaults to 200._
+
+_Example:_    
+```js
+ouibounce(document.getElementById('ouibounce-modal'), { scrollThreshold: 100 });
+```
+
+##### Detect visibility
+When enabled, Ouibounce will fire when the user switches to another tab or minimizes the browser, using the [Page Visibility API](https://developer.mozilla.org/en-US/docs/Web/API/Page_Visibility_API). _Defaults to true._
+
+_Example:_    
+```js
+// Disable visibility change detection
+ouibounce(document.getElementById('ouibounce-modal'), { detectVisibility: false });
+```
+
 ##### Chaining options
 The options are just javascript objects, you can therefore combine multiple options.
 
@@ -218,8 +270,8 @@ var _ouibounce = ouibounce(false, {
 ##### Twitter Bootstrap
 If you're trying to use Ouibounce with Twitter Bootstrap and are simply copying the example code I've included in the demo, you might run into some problems. See #[66](https://github.com/carlsednaoui/ouibounce/issues/66) to fix this.
 
-### Legacy JS engines
-If you'd like Ouibounce to work in legacy JS engines (IE8 and below, for example), you'll need to add a shim such as [es5-shim](https://github.com/es-shims/es5-shim).
+### Browser support
+Ouibounce works in all modern browsers. Mobile exit-intent features (scroll detection, visibility API) require a browser that supports the [Page Visibility API](https://developer.mozilla.org/en-US/docs/Web/API/Page_Visibility_API), which is available in all modern browsers including mobile Safari and Chrome for Android.
 
 ### WordPress
 [Tomaž](https://github.com/tomazzaman) wrote [a great tutorial](https://codeable.io/community/how-to-build-your-own-wordpress-email-form-optin-form/) on how to build your own WordPress opt-in form.

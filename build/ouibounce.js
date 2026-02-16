@@ -24,7 +24,14 @@ return function ouibounce(el, custom_config) {
     cookieName   = config.cookieName ? config.cookieName : 'viewedOuibounceModal',
     sitewide     = config.sitewide === true ? ';path=/' : '',
     _delayTimer  = null,
-    _html        = document.documentElement;
+    _html        = document.documentElement,
+    // Touch/mobile detection options
+    touchSensitivity    = setDefault(config.touchSensitivity, 300),
+    scrollThreshold     = setDefault(config.scrollThreshold, 200),
+    detectVisibility    = setDefault(config.detectVisibility, true),
+    _lastScrollY        = 0,
+    _scrollEnabled      = false,
+    _isTouchDevice      = false;
 
   function setDefault(_property, _default) {
     return typeof _property === 'undefined' ? _default : _property;
@@ -40,13 +47,36 @@ return function ouibounce(el, custom_config) {
     return "; expires=" + date.toUTCString();
   }
 
+  function detectTouchDevice() {
+    return ('ontouchstart' in window) ||
+      (navigator.maxTouchPoints > 0);
+  }
+
   setTimeout(attachOuiBounce, timer);
   function attachOuiBounce() {
     if (isDisabled()) { return; }
 
+    _isTouchDevice = detectTouchDevice();
+
+    // Desktop: mouse-based exit intent
     _html.addEventListener('mouseleave', handleMouseleave);
     _html.addEventListener('mouseenter', handleMouseenter);
     _html.addEventListener('keydown', handleKeydown);
+
+    // Mobile/touch: scroll-up detection for exit intent
+    if (_isTouchDevice) {
+      _lastScrollY = window.pageYOffset || document.documentElement.scrollTop;
+      // Wait a short period before enabling scroll detection to avoid false positives
+      setTimeout(function() {
+        _scrollEnabled = true;
+      }, timer);
+      window.addEventListener('scroll', handleScroll);
+    }
+
+    // Modern: visibility change detection (tab switch, minimize)
+    if (detectVisibility && typeof document.addEventListener === 'function') {
+      document.addEventListener('visibilitychange', handleVisibilityChange);
+    }
   }
 
   function handleMouseleave(e) {
@@ -69,6 +99,30 @@ return function ouibounce(el, custom_config) {
 
     disableKeydown = true;
     _delayTimer = setTimeout(fire, delay);
+  }
+
+  // Mobile: detect rapid scroll-up toward top of page (exit intent signal)
+  function handleScroll() {
+    if (!_scrollEnabled) { return; }
+
+    var currentScrollY = window.pageYOffset || document.documentElement.scrollTop;
+    var scrollDelta = _lastScrollY - currentScrollY;
+
+    // User scrolled up quickly past threshold while near the top of the page
+    if (scrollDelta > scrollThreshold && currentScrollY < touchSensitivity) {
+      if (_delayTimer) { clearTimeout(_delayTimer); }
+      _delayTimer = setTimeout(fire, delay);
+    }
+
+    _lastScrollY = currentScrollY;
+  }
+
+  // Modern: detect when user switches away from the page
+  function handleVisibilityChange() {
+    if (document.visibilityState === 'hidden') {
+      if (_delayTimer) { clearTimeout(_delayTimer); }
+      _delayTimer = setTimeout(fire, delay);
+    }
   }
 
   function checkCookieValue(cookieName, value) {
@@ -133,6 +187,8 @@ return function ouibounce(el, custom_config) {
     _html.removeEventListener('mouseleave', handleMouseleave);
     _html.removeEventListener('mouseenter', handleMouseenter);
     _html.removeEventListener('keydown', handleKeydown);
+    window.removeEventListener('scroll', handleScroll);
+    document.removeEventListener('visibilitychange', handleVisibilityChange);
   }
 
   return {
